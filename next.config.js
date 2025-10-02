@@ -78,8 +78,9 @@ const nextConfig = {
     MONGODB_URI: process.env.MONGODB_URI,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'),
-    EMAIL_SERVER: process.env.EMAIL_SERVER,
-    EMAIL_FROM: process.env.EMAIL_FROM,
+    // Email config - optional
+    EMAIL_SERVER: process.env.EMAIL_SERVER || '',
+    EMAIL_FROM: process.env.EMAIL_FROM || '',
   }
 }
 

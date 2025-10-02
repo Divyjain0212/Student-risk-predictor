@@ -1,0 +1,3 @@
+# This is a placeholder for the logo.jpg file
+# The actual logo image will need to be saved manually as logo.jpg in the public folder
+# since I cannot directly save binary image files from attachments

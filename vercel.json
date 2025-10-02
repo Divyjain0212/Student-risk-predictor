@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
+  "env": {
+    "MONGODB_URI": "@mongodb_uri",
+    "NEXTAUTH_SECRET": "@nextauth_secret",
+    "EMAIL_HOST": "@email_host",
+    "EMAIL_PORT": "@email_port", 
+    "EMAIL_USER": "@email_user",
+    "EMAIL_PASS": "@email_pass",
+    "EMAIL_FROM": "@email_from"
+  },
+  "regions": ["iad1"],
+  "rewrites": [
+    {
+      "source": "/uploads/(.*)",
+      "destination": "/api/files/$1"
+    }
+  ]
+}

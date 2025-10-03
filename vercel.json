@@ -12,11 +12,5 @@
       "source": "/uploads/(.*)",
       "destination": "/api/files/$1"
     }
-  ],
-  "build": {
-    "env": {
-      "TENSORFLOW_JS_SKIP": "true",
-      "NODE_ENV": "production"
-    }
-  }
+  ]
 }

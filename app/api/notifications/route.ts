@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/mongodb';
+import connectToDatabase from '../../../lib/mongodb';
 import { Student, Notification } from '../../../models';
-import { notificationService } from '@/lib/notificationService';
-import { riskAnalysisEngine } from '@/lib/riskAnalysis';
+import { notificationService } from '../../../lib/notificationService';
+import { riskAnalysisEngine } from '../../../lib/riskAnalysis';
 
 export async function POST(request: NextRequest) {
   try {

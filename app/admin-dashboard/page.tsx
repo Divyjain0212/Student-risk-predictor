@@ -2,26 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import AuthGuard from '../../components/AuthGuard';
 import { 
   Users, 
   AlertTriangle, 
   TrendingUp, 
-  Calendar,
   DollarSign,
   MessageSquare,
   Award,
-  BookOpen,
-  Settings,
-  Download,
-  Filter,
   Search,
   Eye,
   UserCheck,
   UserX,
   Heart,
-  GraduationCap,
   Building,
-  Home
+  Download
 } from 'lucide-react';
 
 interface Student {
@@ -52,6 +47,14 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
+  return (
+    <AuthGuard allowedRoles={['admin']}>
+      <AdminDashboardContent />
+    </AuthGuard>
+  );
+}
+
+function AdminDashboardContent() {
   const { data: session } = useSession();
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,

@@ -8,7 +8,6 @@ import {
   User, 
   Trash2, 
   Download,
-  MessageSquare,
   Lightbulb,
   BookOpen,
   Target,

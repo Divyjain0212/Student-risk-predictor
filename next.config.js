@@ -1,7 +1,9 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['mongoose', '@tensorflow/tfjs', '@tensorflow/tfjs-node']
+    serverComponentsExternalPackages: ['mongoose', 'next-auth', 'jose', 'jsonwebtoken'],
   },
   // Performance optimizations
   compress: true,
@@ -40,48 +42,22 @@ const nextConfig = {
     },
   }),
   webpack: (config, { isServer, dev }) => {
-    // Exclude TensorFlow from client-side bundle
+    // Ensure proper path resolution
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': __dirname,
+      '@/models': path.resolve(__dirname, 'models'),
+      '@/lib': path.resolve(__dirname, 'lib'),
+    };
+
+    // Fallback configuration for client builds
     if (!isServer) {
-      config.externals = config.externals || [];
-      config.externals.push('@tensorflow/tfjs', '@tensorflow/tfjs-node');
-      
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
         net: false,
         tls: false,
         crypto: false,
-      };
-    }
-
-    // Ensure proper path resolution
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': __dirname,
-    };
-
-    // Production optimizations
-    if (!dev) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              priority: 10,
-              reuseExistingChunk: true,
-            },
-            common: {
-              name: 'common',
-              minChunks: 2,
-              chunks: 'all',
-              priority: 5,
-              reuseExistingChunk: true,
-            },
-          },
-        },
       };
     }
 

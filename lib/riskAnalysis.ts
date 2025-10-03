@@ -1,6 +1,4 @@
-import * as tf from '@tensorflow/tfjs';
-
-// Risk calculation utilities
+// Risk calculation utilities - Server-safe implementation without TensorFlow.js
 export interface StudentData {
   attendancePercentage: number;
   averageGrade: number;
@@ -26,36 +24,13 @@ export interface RiskPrediction {
 }
 
 export class RiskAnalysisEngine {
-  private model: tf.LayersModel | null = null;
-  private isModelLoaded = false;
-
   constructor() {
-    this.initializeModel();
+    console.log('Risk Analysis Engine initialized (rule-based)');
   }
 
-  private async initializeModel() {
-    try {
-      // In a production environment, you would load a pre-trained model
-      // For now, we'll create a simple neural network
-      this.model = tf.sequential({
-        layers: [
-          tf.layers.dense({ inputShape: [7], units: 16, activation: 'relu' }),
-          tf.layers.dropout({ rate: 0.3 }),
-          tf.layers.dense({ units: 8, activation: 'relu' }),
-          tf.layers.dense({ units: 1, activation: 'sigmoid' })
-        ]
-      });
-
-      this.model.compile({
-        optimizer: 'adam',
-        loss: 'binaryCrossentropy',
-        metrics: ['accuracy']
-      });
-
-      this.isModelLoaded = true;
-    } catch (error) {
-      console.error('Error initializing ML model:', error);
-    }
+  // Main prediction function using rule-based calculation
+  async predictRisk(data: StudentData): Promise<RiskPrediction> {
+    return this.calculateRuleBasedRisk(data);
   }
 
   // Rule-based risk calculation for transparency
@@ -69,17 +44,19 @@ export class RiskAnalysisEngine {
 
     // Weighted average of risk factors
     const weights = { attendance: 0.3, academic: 0.4, financial: 0.2, engagement: 0.1 };
-    const riskScore = 
+    
+    const riskScore = (
       factors.attendance * weights.attendance +
       factors.academic * weights.academic +
       factors.financial * weights.financial +
-      factors.engagement * weights.engagement;
+      factors.engagement * weights.engagement
+    );
 
     const riskLevel = this.determineRiskLevel(riskScore);
-    const recommendations = this.generateRecommendations(factors, data);
+    const recommendations = this.generateRecommendations(factors, riskLevel);
 
     return {
-      riskScore: Math.round(riskScore * 100) / 100,
+      riskScore,
       riskLevel,
       factors,
       recommendations
@@ -95,42 +72,40 @@ export class RiskAnalysisEngine {
   }
 
   private calculateAcademicRisk(averageGrade: number, submissionRate: number, attempts: number): number {
-    let academicRisk = 0;
-
-    // Grade-based risk
-    if (averageGrade < 40) academicRisk += 0.4;
-    else if (averageGrade < 60) academicRisk += 0.3;
-    else if (averageGrade < 75) academicRisk += 0.2;
-    else academicRisk += 0.1;
-
+    let risk = 0;
+    
+    // Grade-based risk (assuming 0-100 scale)
+    if (averageGrade < 40) risk += 0.5;
+    else if (averageGrade < 60) risk += 0.3;
+    else if (averageGrade < 75) risk += 0.1;
+    
     // Submission rate risk
-    if (submissionRate < 50) academicRisk += 0.3;
-    else if (submissionRate < 75) academicRisk += 0.2;
-    else if (submissionRate < 90) academicRisk += 0.1;
-
-    // Multiple attempts penalty
-    if (attempts > 3) academicRisk += 0.3;
-    else if (attempts > 2) academicRisk += 0.2;
-    else if (attempts > 1) academicRisk += 0.1;
-
-    return Math.min(academicRisk, 1.0);
+    if (submissionRate < 0.5) risk += 0.3;
+    else if (submissionRate < 0.7) risk += 0.2;
+    else if (submissionRate < 0.9) risk += 0.1;
+    
+    // Multiple attempts risk (normalized)
+    const attemptRisk = Math.min(attempts / 10, 0.2);
+    risk += attemptRisk;
+    
+    return Math.min(risk, 1.0);
   }
 
-  private calculateFinancialRisk(paymentStatus: string, daysSinceLastPayment: number): number {
-    switch (paymentStatus) {
+  private calculateFinancialRisk(status: string, daysSincePayment: number): number {
+    switch (status) {
+      case 'overdue':
+        return Math.min(0.7 + (daysSincePayment / 30) * 0.3, 1.0);
+      case 'pending':
+        return Math.min(0.4 + (daysSincePayment / 60) * 0.3, 0.7);
       case 'paid':
         return 0.1;
-      case 'pending':
-        return daysSinceLastPayment > 30 ? 0.6 : 0.3;
-      case 'overdue':
-        return daysSinceLastPayment > 90 ? 1.0 : 0.8;
       default:
         return 0.5;
     }
   }
 
   private calculateEngagementRisk(engagementScore: number): number {
-    // Engagement score is assumed to be 0-100
+    // Assuming engagement score is 0-100
     if (engagementScore >= 80) return 0.1;
     if (engagementScore >= 60) return 0.3;
     if (engagementScore >= 40) return 0.6;
@@ -144,152 +119,74 @@ export class RiskAnalysisEngine {
     return 'high';
   }
 
-  private generateRecommendations(factors: RiskFactors, _data: StudentData): string[] {
+  private generateRecommendations(factors: RiskFactors, riskLevel: string): string[] {
     const recommendations: string[] = [];
 
     if (factors.attendance > 0.5) {
-      recommendations.push('Schedule attendance counseling session');
-      recommendations.push('Implement attendance tracking and reminders');
+      recommendations.push('Improve attendance - consider scheduling conflicts or transportation issues');
     }
 
     if (factors.academic > 0.5) {
-      recommendations.push('Arrange academic support and tutoring');
-      recommendations.push('Review study methods and time management');
+      recommendations.push('Academic support needed - consider tutoring or study groups');
     }
 
     if (factors.financial > 0.5) {
-      recommendations.push('Contact student about fee payment options');
-      recommendations.push('Provide information about financial assistance programs');
+      recommendations.push('Financial assistance may be required - explore scholarship or aid options');
     }
 
     if (factors.engagement > 0.5) {
-      recommendations.push('Increase student engagement through interactive activities');
-      recommendations.push('Schedule one-on-one mentoring sessions');
+      recommendations.push('Increase engagement - check for motivation or personal issues');
     }
 
-    if (recommendations.length === 0) {
-      recommendations.push('Continue monitoring student progress');
-      recommendations.push('Maintain regular check-ins');
+    if (riskLevel === 'high') {
+      recommendations.push('Immediate intervention required - schedule counseling session');
+    } else if (riskLevel === 'medium') {
+      recommendations.push('Monitor closely and provide proactive support');
     }
 
     return recommendations;
   }
 
-  // ML-based prediction (when model is available)
-  private async predictWithML(data: StudentData): Promise<number> {
-    if (!this.isModelLoaded || !this.model) {
-      throw new Error('ML model not loaded');
-    }
-
-    // Normalize input features
-    const features = this.normalizeFeatures(data);
-    const inputTensor = tf.tensor2d([features]);
-    
-    const prediction = this.model.predict(inputTensor) as tf.Tensor;
-    const riskScore = await prediction.data();
-    
-    inputTensor.dispose();
-    prediction.dispose();
-
-    return riskScore[0];
+  // Additional utility methods
+  public calculateBulkRisk(studentDataArray: StudentData[]): Promise<RiskPrediction[]> {
+    return Promise.all(studentDataArray.map(data => this.predictRisk(data)));
   }
 
-  private normalizeFeatures(data: StudentData): number[] {
-    return [
-      data.attendancePercentage / 100,
-      data.averageGrade / 100,
-      data.assignmentSubmissionRate / 100,
-      Math.min(data.numberOfAttempts / 5, 1), // Normalize attempts to 0-1
-      data.feePaymentStatus === 'paid' ? 0 : data.feePaymentStatus === 'pending' ? 0.5 : 1,
-      Math.min(data.daysSinceLastPayment / 365, 1), // Normalize days to 0-1
-      data.engagementScore / 100
-    ];
+  public generateRiskReport(predictions: RiskPrediction[]): {
+    totalStudents: number;
+    highRisk: number;
+    mediumRisk: number;
+    lowRisk: number;
+    averageRiskScore: number;
+  } {
+    const total = predictions.length;
+    const high = predictions.filter(p => p.riskLevel === 'high').length;
+    const medium = predictions.filter(p => p.riskLevel === 'medium').length;
+    const low = predictions.filter(p => p.riskLevel === 'low').length;
+    const averageScore = predictions.reduce((sum, p) => sum + p.riskScore, 0) / total;
+
+    return {
+      totalStudents: total,
+      highRisk: high,
+      mediumRisk: medium,
+      lowRisk: low,
+      averageRiskScore: parseFloat(averageScore.toFixed(3))
+    };
   }
 
-  // Main prediction method
-  public async predictRisk(data: StudentData): Promise<RiskPrediction> {
-    try {
-      // Use rule-based calculation as primary method for transparency
-      const ruleBasedPrediction = this.calculateRuleBasedRisk(data);
-
-      // If ML model is available, use it to refine the prediction
-      if (this.isModelLoaded && this.model) {
-        try {
-          const mlRiskScore = await this.predictWithML(data);
-          // Combine rule-based and ML predictions (weighted average)
-          const combinedRiskScore = (ruleBasedPrediction.riskScore * 0.7) + (mlRiskScore * 0.3);
-          
-          return {
-            ...ruleBasedPrediction,
-            riskScore: Math.round(combinedRiskScore * 100) / 100,
-            riskLevel: this.determineRiskLevel(combinedRiskScore)
-          };
-        } catch (mlError) {
-          console.warn('ML prediction failed, using rule-based prediction:', mlError);
-        }
-      }
-
-      return ruleBasedPrediction;
-    } catch (error) {
-      console.error('Error in risk prediction:', error);
-      throw error;
-    }
-  }
-
-  // Batch prediction for multiple students
-  public async predictBatchRisk(studentsData: StudentData[]): Promise<RiskPrediction[]> {
-    const predictions: RiskPrediction[] = [];
-    
-    for (const studentData of studentsData) {
-      try {
-        const prediction = await this.predictRisk(studentData);
-        predictions.push(prediction);
-      } catch (error) {
-        console.error('Error predicting risk for student:', error);
-        // Return a default high-risk prediction for failed cases
-        predictions.push({
-          riskScore: 0.8,
-          riskLevel: 'high',
-          factors: { attendance: 0.8, academic: 0.8, financial: 0.8, engagement: 0.8 },
-          recommendations: ['Manual review required due to prediction error']
-        });
-      }
-    }
-
-    return predictions;
-  }
-
-  // Train the model with new data (for continuous learning)
-  public async trainModel(trainingData: { features: StudentData[], labels: number[] }) {
-    if (!this.model) {
-      throw new Error('Model not initialized');
-    }
-
-    try {
-      const normalizedFeatures = trainingData.features.map(data => this.normalizeFeatures(data));
-      const xs = tf.tensor2d(normalizedFeatures);
-      const ys = tf.tensor2d(trainingData.labels, [trainingData.labels.length, 1]);
-
-      await this.model.fit(xs, ys, {
-        epochs: 50,
-        validationSplit: 0.2,
-        callbacks: {
-          onEpochEnd: (epoch, logs) => {
-            console.log(`Epoch ${epoch}: loss = ${logs?.loss}`);
-          }
-        }
-      });
-
-      xs.dispose();
-      ys.dispose();
-
-      console.log('Model training completed');
-    } catch (error) {
-      console.error('Error training model:', error);
-      throw error;
-    }
+  // Mock data generation for testing
+  public generateMockStudentData(): StudentData {
+    return {
+      attendancePercentage: Math.random() * 100,
+      averageGrade: Math.random() * 100,
+      assignmentSubmissionRate: Math.random(),
+      numberOfAttempts: Math.floor(Math.random() * 5) + 1,
+      feePaymentStatus: ['paid', 'pending', 'overdue'][Math.floor(Math.random() * 3)] as any,
+      daysSinceLastPayment: Math.floor(Math.random() * 90),
+      engagementScore: Math.random() * 100
+    };
   }
 }
 
-// Export singleton instance
+// Create and export a singleton instance
 export const riskAnalysisEngine = new RiskAnalysisEngine();

@@ -8,7 +8,6 @@ import {
   TrendingDown,
   Users, 
   AlertTriangle, 
-  CheckCircle,
   Calendar,
   Download,
   RefreshCw,

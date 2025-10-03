@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DataProcessor } from '@/lib/dataProcessor';
-import connectToDatabase from '@/lib/mongodb';
-import { Student, Attendance, Assessment, FeePayment } from '@/models';
+import { DataProcessor } from '../../../lib/dataProcessor';
+import connectToDatabase from '../../../lib/mongodb';
+import { Student, Attendance, Assessment, FeePayment } from '../../../models';
 
 export async function POST(request: NextRequest) {
   try {

@@ -42,10 +42,10 @@ public/uploads/
 *.tsbuildinfo
 next-env.d.ts
 
-# ML Models
-models/
+# ML Models (but not database models folder)
 *.model
 training_data/
+ml_models/
 
 # IDE
 .vscode/

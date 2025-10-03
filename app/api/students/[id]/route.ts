@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/mongodb';
-import { Student, Attendance, Assessment, FeePayment, RiskScore } from '@/models';
+import connectToDatabase from '../../../../lib/mongodb';
+import { Student, Attendance, Assessment, FeePayment, RiskScore } from '../../../../models';
 
 export async function GET(
   request: NextRequest,

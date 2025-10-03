@@ -54,6 +54,12 @@ const nextConfig = {
       };
     }
 
+    // Ensure proper path resolution
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': __dirname,
+    };
+
     // Production optimizations
     if (!dev) {
       config.optimization = {

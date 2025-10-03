@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
-import { Student, RiskScore } from '@/models';
+import { Student, RiskScore } from '../../../models';
 import { riskAnalysisEngine } from '@/lib/riskAnalysis';
 
 export async function GET(request: NextRequest) {
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
 
 // Helper function to get student data for risk calculation
 async function getStudentDataForRisk(studentId: string) {
-  const { Attendance, Assessment, FeePayment } = await import('@/models');
+  const { Attendance, Assessment, FeePayment } = await import('../../../models');
   
   // Get recent attendance data
   const attendanceRecords = await Attendance.find({ studentId })

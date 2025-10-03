@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
-import { Student, Notification } from '@/models';
+import { Student, Notification } from '../../../models';
 import { notificationService } from '@/lib/notificationService';
 import { riskAnalysisEngine } from '@/lib/riskAnalysis';
 
@@ -121,7 +121,7 @@ async function sendRiskAlerts(filters: Record<string, any>) {
 
 async function sendAttendanceAlerts(_filters: Record<string, any>) {
   try {
-    const { Attendance } = await import('@/models');
+    const { Attendance } = await import('../../../models');
     
     // Get students with low attendance
     const lowAttendanceRecords = await Attendance.find({
@@ -149,7 +149,7 @@ async function sendAttendanceAlerts(_filters: Record<string, any>) {
 
       // Send to mentor
       if (student.mentorId) {
-        const mentor = await import('@/models').then(m => m.User.findById(student.mentorId));
+        const mentor = await import('../../../models').then(m => m.User.findById(student.mentorId));
         if (mentor?.email) {
           attendanceEmail.to = mentor.email;
           emails.push({ ...attendanceEmail });
@@ -203,7 +203,7 @@ async function sendAttendanceAlerts(_filters: Record<string, any>) {
 
 async function sendFeeAlerts(_filters: Record<string, any>) {
   try {
-    const { FeePayment } = await import('@/models');
+    const { FeePayment } = await import('../../../models');
     
     // Get overdue fee payments
     const overduePayments = await FeePayment.find({
@@ -268,7 +268,7 @@ async function sendFeeAlerts(_filters: Record<string, any>) {
 
 // Helper function to get student data for risk calculation in notifications
 async function getStudentDataForNotification(studentId: string) {
-  const { Attendance, Assessment, FeePayment } = await import('@/models');
+  const { Attendance, Assessment, FeePayment } = await import('../../../models');
   
   const attendanceRecords = await Attendance.find({ studentId }).limit(6);
   const assessmentRecords = await Assessment.find({ studentId }).limit(10);

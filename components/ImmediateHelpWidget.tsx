@@ -5,14 +5,10 @@ import { useState } from 'react'
 import { 
   Phone, 
   MessageCircle, 
-  Mail, 
-  Clock,
+  Mail,
   Heart,
   AlertTriangle,
-  ExternalLink,
   Send,
-  User,
-  MapPin,
   Shield
 } from 'lucide-react'
 import { useNotify } from './NotificationProvider'

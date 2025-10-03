@@ -9,6 +9,13 @@ const nextConfig = {
   generateEtags: false,
   // Enable strict mode
   reactStrictMode: true,
+  // Reduce build warnings
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+  typescript: {
+    ignoreBuildErrors: false,
+  },
   // Optimize images  
   images: {
     remotePatterns: [
